@@ -1,0 +1,19 @@
+clear; close all;
+syms theta_dd theta_d theta x_dd x_d x f m g l M
+theta_dd = (f*cos(theta) + (M+m)*g*sin(theta) + l*m*theta_d^2*sin(theta)*cos(theta)) / (l*(M+m*sin(theta)^2))
+x_dd = (f + m*sin(theta)*g*cos(theta) + m*sin(theta)*l*theta^2) / (M + m*sin(theta)^2)
+X_bar_d = [x_d; x_dd; theta_d; theta_dd]
+
+%this linearizing X_bar_d around X_bar = [0, 0, 0, 0]'
+A_linear = jacobian(X_bar_d, [x, x_d, theta, theta_d])
+A = subs(A_linear, [x, x_d, theta, theta_d], [0, 0, 0, 0])
+B_linear = jacobian(X_bar_d, [f])
+B = subs(B_linear, [x, x_d, theta, theta_d], [0, 0, 0, 0])
+
+
+%check eigenvalues of A
+se
+eig(A)
+
+%check if this system is controllable
+
