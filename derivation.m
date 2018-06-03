@@ -1,7 +1,12 @@
 clear; close all;
 syms theta_dd theta_d theta x_dd x_d x f m g l M
-theta_dd = (f*cos(theta) + (M+m)*g*sin(theta) + l*m*theta_d^2*sin(theta)*cos(theta)) / (l*(M+m*sin(theta)^2))
-x_dd = (f + m*sin(theta)*g*cos(theta) + m*sin(theta)*l*theta^2) / (M + m*sin(theta)^2)
+
+theta_dd = (f*cos(theta) - (M+m)*g*sin(theta) + l*m*theta_d^2*sin(theta)*cos(theta)) / (l*(M+m*sin(theta)^2))
+%theta_dd = (f*cos(theta) + (M+m)*g*sin(theta) + l*m*theta_d^2*sin(theta)*cos(theta)) / (l*(M+m*sin(theta)^2))
+
+x_dd = (f - m*sin(theta)*g*cos(theta) + m*sin(theta)*l*theta^2) / (M + m*sin(theta)^2)
+%middle term sign is wrong --> pole theta direction
+%x_dd = (f + m*sin(theta)*g*cos(theta) + m*sin(theta)*l*theta^2) / (M + m*sin(theta)^2)
 X_bar_d = [x_d; x_dd; theta_d; theta_dd]
 
 %this linearizing X_bar_d around X_bar = [0, 0, 0, 0]'
@@ -25,17 +30,23 @@ controlabillity = ctrb(Ad, Bd)
 rankctrb = rank(controlabillity)
 
 %place eigenvalues, from lecture videos
-p = [-.3; -.4; -.5; -.6];  % just barely
-p = [-1; -1.1; -1.2; -1.3]; % good
-p = [-2; -2.1; -2.2; -2.3]; % aggressive
-p = [-3; -3.1; -3.2; -3.3]; % aggressive
+%p = [-.3; -.4; -.5; -.6];  % just barely
+%p = [-1; -1.1; -1.2; -1.3]; % good
+%p = [-2; -2.1; -2.2; -2.3]; % aggressive
+p = [-3; -3.1; -3.2; -3.3]; % more aggressive
 K = place(Ad,Bd,p);
 
 %confirm all stable eigenvalues
 eig(Ad - Bd*K)
 
 %grab from lecture code:
-% K = lqr(A,B,Q,R);
+Q = [1 0 0 0;
+    0 1 0 0;
+    0 0 10 0;
+    0 0 0 100];
+R = .0001;
+
+K = lqr(Ad,Bd,Q,R);
 
 %[m, M, l, g] = [1, 5, 2, -10]
 m = 1
@@ -58,6 +69,22 @@ elseif(s==1)
 else 
 end
 
-for k=1:100:length(t)
+
+h = figure;
+axis tight manual % this ensures that getframe() returns a consistent size
+filename = 'testAnimated.gif';
+
+for k=1:90:length(t)
     drawcartpend_bw(y(k,:),m,M,L);
+    
+    % Capture the plot as an image 
+      frame = getframe(h); 
+      im = frame2im(frame); 
+      [imind,cm] = rgb2ind(im,256); 
+      % Write to the GIF File 
+      if k == 1 
+          imwrite(imind,cm,filename,'gif', 'Loopcount',inf, 'DelayTime',0.03); 
+      else 
+          imwrite(imind,cm,filename,'gif','WriteMode','append', 'DelayTime',0.05); 
+      end 
 end
